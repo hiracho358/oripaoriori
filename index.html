@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ポケカオリオリ</title>
+
+<style>
+body{
+    margin:0;
+    font-family:sans-serif;
+    background:#111;
+    color:white;
+    text-align:center;
+}
+
+header{
+    background:linear-gradient(90deg,#ff0000,#ff9900);
+    padding:20px;
+    font-size:28px;
+    font-weight:bold;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.header-title{
+    flex:1;
+}
+
+.reset-btn{
+    background:#ff4444;
+    border:none;
+    padding:8px 15px;
+    font-size:14px;
+    border-radius:8px;
+    cursor:pointer;
+    color:white;
+    font-weight:bold;
+}
+
+.reset-btn:hover{
+    background:#ff6666;
+}
+
+.container{
+    padding:20px;
+}
+
+.gacha-box{
+    background:#222;
+    border-radius:20px;
+    padding:20px;
+    max-width:400px;
+    margin:auto;
+    box-shadow:0 0 20px rgba(255,255,255,0.2);
+}
+
+button{
+    background:gold;
+    border:none;
+    padding:15px 40px;
+    font-size:22px;
+    border-radius:15px;
+    cursor:pointer;
+    margin-top:20px;
+    font-weight:bold;
+    color:#333;
+}
+
+button:hover{
+    transform:scale(1.05);
+    background:#ffed4e;
+}
+
+button:disabled{
+    background:#666;
+    cursor:not-allowed;
+    transform:none;
+    color:#999;
+}
+
+.card{
+    margin-top:20px;
+}
+
+.card img{
+    width:250px;
+    border-radius:15px;
+    box-shadow:0 0 20px gold;
+}
+
+.result{
+    font-size:28px;
+    margin-top:15px;
+    font-weight:bold;
+}
+
+.remaining{
+    margin-top:10px;
+    color:#aaa;
+    font-size:18px;
+}
+
+.flash{
+    animation:flash 0.5s infinite;
+}
+
+@keyframes flash{
+    0%{background:#111;}
+    50%{background:#440000;}
+    100%{background:#111;}
+}
+
+.stats{
+    background:#1a1a1a;
+    border-radius:15px;
+    padding:15px;
+    margin-top:20px;
+    text-align:left;
+}
+
+.stat-row{
+    display:flex;
+    justify-content:space-between;
+    padding:8px 0;
+    border-bottom:1px solid #333;
+}
+
+.stat-row:last-child{
+    border-bottom:none;
+}
+
+.stat-label{
+    color:#aaa;
+}
+
+.stat-value{
+    font-weight:bold;
+}
+
+.stat-value.super{
+    color:gold;
+}
+
+.stat-value.great{
+    color:orange;
+}
+
+.stat-value.good{
+    color:#4affff;
+}
+
+.stat-value.miss{
+    color:#ff6666;
+}
+
+.history{
+    background:#1a1a1a;
+    border-radius:15px;
+    padding:15px;
+    margin-top:20px;
+    max-height:200px;
+    overflow-y:auto;
+}
+
+.history-title{
+    font-size:16px;
+    font-weight:bold;
+    margin-bottom:10px;
+    text-align:center;
+}
+
+.history-item{
+    font-size:12px;
+    padding:5px;
+    background:#222;
+    margin:5px 0;
+    border-radius:5px;
+    border-left:4px solid gold;
+}
+
+.history-item.super{
+    border-left-color:gold;
+}
+
+.history-item.great{
+    border-left-color:orange;
+}
+
+.history-item.good{
+    border-left-color:#4affff;
+}
+
+.history-item.miss{
+    border-left-color:#ff6666;
+}
+
+.info-box{
+    background:#1a1a1a;
+    border-radius:15px;
+    padding:15px;
+    margin-top:20px;
+    font-size:14px;
+    color:#aaa;
+}
+
+@media (max-width: 600px){
+    header{
+        flex-direction:column;
+        gap:10px;
+    }
+    
+    .reset-btn{
+        width:100%;
+    }
+    
+    .card img{
+        width:200px;
+    }
+    
+    button{
+        padding:12px 30px;
+        font-size:18px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<div class="header-title">ポケカオリオリ</div>
+<button class="reset-btn" onclick="resetAll()">リセット</button>
+</header>
+
+<div class="container">
+
+<div class="gacha-box">
+
+<h2>1回 500pt</h2>
+
+<p>超大当たりを狙え！</p>
+
+<button id="gachaBtn" onclick="drawGacha()">ガチャを引く</button>
+
+<div class="remaining">
+残り口数: <span id="stock">100</span>
+</div>
+
+<div class="card" id="cardArea"></div>
+
+<div class="result" id="result"></div>
+
+<div class="stats">
+<div class="stat-row">
+<span class="stat-label">総ガチャ回数:</span>
+<span class="stat-value" id="totalDraws">0</span>
+</div>
+<div class="stat-row">
+<span class="stat-label">超大当たり:</span>
+<span class="stat-value super" id="countSuper">0</span>
+</div>
+<div class="stat-row">
+<span class="stat-label">大当たり:</span>
+<span class="stat-value great" id="countGreat">0</span>
+</div>
+<div class="stat-row">
+<span class="stat-label">当たり:</span>
+<span class="stat-value good" id="countGood">0</span>
+</div>
+<div class="stat-row">
+<span class="stat-label">ハズレ:</span>
+<span class="stat-value miss" id="countMiss">0</span>
+</div>
+</div>
+
+<div class="history">
+<div class="history-title">最近のガチャ履歴</div>
+<div id="historyList"></div>
+</div>
+
+<div class="info-box">
+💡 データはブラウザに自動保存されます。ブラウザのキャッシュをクリアするとリセットされます。
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+// カード定義
+const cards = [
+    {
+        name:"超大当たり",
+        image:"https://images.pokemontcg.io/swsh4/189_hires.png",
+        rate:1,
+        type:"super"
+    },
+    {
+        name:"大当たり",
+        image:"https://images.pokemontcg.io/swsh45sv/SV107_hires.png",
+        rate:5,
+        type:"great"
+    },
+    {
+        name:"当たり",
+        image:"https://images.pokemontcg.io/base1/4_hires.png",
+        rate:20,
+        type:"good"
+    },
+    {
+        name:"ハズレ",
+        image:"https://images.pokemontcg.io/base1/7_hires.png",
+        rate:74,
+        type:"miss"
+    }
+];
+
+// localStorage キー定義
+const STORAGE_KEYS = {
+    stock: "gacha_stock",
+    history: "gacha_history",
+    stats: "gacha_stats"
+};
+
+// 初期統計
+const initialStats = {
+    totalDraws: 0,
+    super: 0,
+    great: 0,
+    good: 0,
+    miss: 0
+};
+
+// 初期化
+let stock = loadStock();
+let stats = loadStats();
+let history = loadHistory();
+
+initializeUI();
+
+// ローカルストレージから在庫を読み込む
+function loadStock(){
+    const saved = localStorage.getItem(STORAGE_KEYS.stock);
+    return saved !== null ? parseInt(saved) : 100;
+}
+
+// ローカルストレージから統計を読み込む
+function loadStats(){
+    const saved = localStorage.getItem(STORAGE_KEYS.stats);
+    return saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(initialStats));
+}
+
+// ローカルストレージから履歴を読み込む
+function loadHistory(){
+    const saved = localStorage.getItem(STORAGE_KEYS.history);
+    return saved ? JSON.parse(saved) : [];
+}
+
+// 在庫を保存
+function saveStock(){
+    localStorage.setItem(STORAGE_KEYS.stock, stock);
+}
+
+// 統計を保存
+function saveStats(){
+    localStorage.setItem(STORAGE_KEYS.stats, JSON.stringify(stats));
+}
+
+// 履歴を保存
+function saveHistory(){
+    localStorage.setItem(STORAGE_KEYS.history, JSON.stringify(history));
+}
+
+// UIを初期化
+function initializeUI(){
+    updateStockDisplay();
+    updateStatsDisplay();
+    updateHistoryDisplay();
+    updateButtonState();
+}
+
+// 在庫表示を更新
+function updateStockDisplay(){
+    document.getElementById("stock").innerText = stock;
+}
+
+// 統計表示を更新
+function updateStatsDisplay(){
+    document.getElementById("totalDraws").innerText = stats.totalDraws;
+    document.getElementById("countSuper").innerText = stats.super;
+    document.getElementById("countGreat").innerText = stats.great;
+    document.getElementById("countGood").innerText = stats.good;
+    document.getElementById("countMiss").innerText = stats.miss;
+}
+
+// 履歴を更新
+function updateHistoryDisplay(){
+    const historyList = document.getElementById("historyList");
+    historyList.innerHTML = "";
+    
+    // 最新の20件を表示（逆順）
+    const recent = history.slice(-20).reverse();
+    
+    for(let item of recent){
+        const div = document.createElement("div");
+        div.className = `history-item ${item.type}`;
+        const time = new Date(item.timestamp).toLocaleTimeString('ja-JP');
+        div.innerText = `${time} - ${item.name}`;
+        historyList.appendChild(div);
+    }
+}
+
+// ボタン状態を更新
+function updateButtonState(){
+    const btn = document.getElementById("gachaBtn");
+    btn.disabled = stock <= 0;
+    
+    if(stock <= 0){
+        btn.innerText = "売り切れ！";
+    } else {
+        btn.innerText = "ガチャを引く";
+    }
+}
+
+// ガチャを引く
+function drawGacha(){
+    if(stock <= 0){
+        alert("売り切れ！");
+        return;
+    }
+
+    stock--;
+    saveStock();
+    updateStockDisplay();
+    updateButtonState();
+
+    let rand = Math.random() * 100;
+    let total = 0;
+    let selected;
+
+    for(let card of cards){
+        total += card.rate;
+        if(rand <= total){
+            selected = card;
+            break;
+        }
+    }
+
+    // 統計を更新
+    stats.totalDraws++;
+    stats[selected.type]++;
+    saveStats();
+
+    // 履歴に追加
+    history.push({
+        name: selected.name,
+        type: selected.type,
+        timestamp: new Date().toISOString()
+    });
+    saveHistory();
+
+    const cardArea = document.getElementById("cardArea");
+    const result = document.getElementById("result");
+
+    document.body.classList.add("flash");
+
+    setTimeout(()=>{
+        document.body.classList.remove("flash");
+
+        cardArea.innerHTML = `
+<img src="${selected.image}" alt="${selected.name}">
+`;
+
+        result.innerHTML = selected.name;
+
+        if(selected.type === "super"){
+            result.style.color = "gold";
+        } else if(selected.type === "great"){
+            result.style.color = "orange";
+        } else {
+            result.style.color = "white";
+        }
+
+        updateStatsDisplay();
+        updateHistoryDisplay();
+
+    },1500);
+}
+
+// リセット
+function resetAll(){
+    if(confirm("本当にリセットしますか？\nすべてのデータが削除されます。")){
+        stock = 100;
+        stats = JSON.parse(JSON.stringify(initialStats));
+        history = [];
+        
+        saveStock();
+        saveStats();
+        saveHistory();
+        
+        document.getElementById("cardArea").innerHTML = "";
+        document.getElementById("result").innerHTML = "";
+        
+        initializeUI();
+        alert("リセットしました！");
+    }
+}
+
+</script>
+
+</body>
+</html>
